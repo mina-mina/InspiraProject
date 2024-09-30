@@ -1,0 +1,24 @@
+{
+	"SubmissionId": "1234455",
+
+    "Properties": [
+        {
+            "owner: tax id": "123456789"
+        },
+        {
+            "owner: contact id": "3424334"
+        }
+    ]
+}
+{
+	"SubmissionId": "32435543",
+
+    "Properties": [
+        {
+            "owner: tax id": "123456789"
+        },
+        {
+            "owner: contact id": "32422424"
+		}
+    ]
+}
