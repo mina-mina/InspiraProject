@@ -1,4 +1,5 @@
 ﻿using SubmissionsProcessor.API.Models;
+using SubmissionsProcessor.API.Models.MongoDB;
 using SubmissionsProcessor.API.Services;
 using SubmissionsProcessor.API.Services.MongoDB;
 
@@ -25,30 +26,37 @@ namespace SubmissionsProcessor.API.Repositories
             bool result = false;
             var contactId = 0;
 
-            //TODO: Validate SubmissionId AND userId by querying submissions catalogue 
+            try { 
 
-            var submissionProperty = await _service.GetBySubmissionId(submissionId);
+                //TODO: Validate SubmissionId AND userId by querying submissions catalogue 
 
-            var taxId = await GetValidTaxId(model.SSN, submissionId, submissionProperty.Properties.FirstOrDefault().GetValueOrDefault(PROP_OWNER_TAX_ID));
-            var role = model.Role == "Owner" ? 1 : 0;
+                var submissionProperty = await _service.GetBySubmissionId(submissionId);
+                var propertyValue = submissionProperty?.Properties?.FirstOrDefault()?.GetValueOrDefault(PROP_OWNER_TAX_ID);
 
-            //soap api call
-            var ssnInternalCheckResult = await _ssnCheckMockService.SSNInternalCheckAsync(taxId, role.ToString());
+                var taxId = await GetValidTaxId(model.SSN, submissionId, propertyValue);
+                var role = model.Role == "Owner" ? 1 : 0;
 
-            //check soap api response
-            //var ssnInternalCheckResult = new SSNInternalCheckResponse { SSNInternalCheckResult = "123456789" }.ToString();
+                //mocking soap api call here
+                var ssnInternalCheckResult = await _ssnCheckMockService.SSNInternalCheckAsync(taxId, role.ToString());
+            
+            
+                //update contactId in db if valid AND role=owner
+                if (role == 1 && int.TryParse(ssnInternalCheckResult, out contactId))
+                {
+                    UpdateDbWithContactId(submissionProperty, contactId);
+                }
+            }
+            catch (Exception ex) {
 
-            //update contactId in db if valid AND role=owner
-            if (role == 1 && int.TryParse(ssnInternalCheckResult, out contactId))
-            {
-                submissionProperty.Properties.FirstOrDefault(x => x.ContainsKey(PROP_OWNER_CONTACT_ID))[PROP_OWNER_CONTACT_ID] = ssnInternalCheckResult;// new Dictionary<string, string> { { PROP_OWNER_CONTACT_ID, ssnInternalCheckResult } };
-                await _service.UpdateAsync(submissionProperty.Id, submissionProperty);
+                _logger.LogError(ex.Message, ex);
+                
+                //throw again
+                throw;
+
             }
 
-            //handle exception
 
             //return response
-
             var response = new SubmissionResponse
             {
                 result = result.ToString(),
@@ -58,13 +66,20 @@ namespace SubmissionsProcessor.API.Repositories
             return response;
         }
 
+        private async Task UpdateDbWithContactId(SubmissionProperty? submissionProperty, int contactId)
+        {
+            submissionProperty.Properties.FirstOrDefault(x => x.ContainsKey(PROP_OWNER_CONTACT_ID))[PROP_OWNER_CONTACT_ID] = contactId.ToString();
+            await _service.UpdateAsync(submissionProperty.Id, submissionProperty);
+
+        }
+
         private async Task<string> GetValidTaxId(string ssn, string submissionId, string propertyValue)
         {
             string taxId = ssn;
 
             if (submissionId == null)
             {
-                throw new Exception("submissionId is null.");
+                throw new BadHttpRequestException("submissionId is null.");
             }
 
             var isRedactedTaxId = ssn.Length == 4 || ssn.Contains(".");
@@ -79,7 +94,7 @@ namespace SubmissionsProcessor.API.Repositories
 
             if (taxId == null)
             {
-                throw new Exception($"No valid Tax Id was found for subission id: {submissionId} from SubmissionProperties.");
+                throw new BadHttpRequestException($"No valid Tax Id was found for subission id: {submissionId} from SubmissionProperties.");
             }
 
             //[MINA] - how about tax id validation? last 4 not matching to last from property?

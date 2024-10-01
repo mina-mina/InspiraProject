@@ -1,10 +1,12 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using SubmissionsProcessor.API.Models;
 using SubmissionsProcessor.API.Repositories;
 using System.Net.Mime;
 using System.Reflection;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace SubmissionsProcessor.API.Controllers
 {
@@ -27,6 +29,8 @@ namespace SubmissionsProcessor.API.Controllers
             _logger = logger;
         }
 
+        public string correlationId { get; set; }
+
         [HttpPost]
         [Produces(MediaTypeNames.Application.Json)]
         //[MINA] - bad method naming - maybe Get
@@ -43,9 +47,44 @@ namespace SubmissionsProcessor.API.Controllers
             }
             catch (Exception ex)
             {
-                //return HandleException(ex);
+                return HandleException(ex);
             }
             return Ok(response);
         }
+
+        #region private methods
+        private ActionResult HandleException(Exception ex)
+        {
+            var response = new SubmissionResponse
+            {
+                result = "error",
+                contactId = 0
+            };
+
+            if (ex.GetType().Equals(typeof(BadHttpRequestException)))
+            {
+                _logger.LogError($"SubmissionController.Post correlationId: {Request?.HttpContext?.TraceIdentifier}, ApplicationException", ex);
+
+                return BadRequest(response);
+            }
+            else
+                _logger.LogError($"SubmissionController.Post correlationId: {Request?.HttpContext?.TraceIdentifier}, Error Message: {ex.Message}, Stacktrace: {ex.StackTrace}", ex);
+
+
+            return StatusCode(500, response);
+        }
+        //USE below for manual request model logging
+        private void LogModelStateErrors(ModelStateDictionary modelState)
+        {
+            var options = new JsonSerializerOptions
+            {
+                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+                WriteIndented = true
+            };
+
+            var errors = JsonSerializer.Serialize(modelState.ToDictionary(x => x.Key, x => x.Value?.Errors), options);
+            _logger.LogInformation($"SubmissionController.Post SubmissionRequest correlationId:{Request?.HttpContext?.TraceIdentifier}, Model Validation Errors: {errors}");
+        }
+        #endregion  
     }
 }
