@@ -34,10 +34,7 @@ namespace SubmissionsProcessor.API.Repositories
 
             //soap api call
             var ssnInternalCheckResult = await _ssnCheckMockService.SSNInternalCheckAsync(taxId, role.ToString());
-
-            //check soap api response
-            //var ssnInternalCheckResult = new SSNInternalCheckResponse { SSNInternalCheckResult = "123456789" }.ToString();
-
+            
             //update contactId in db if valid AND role=owner
             if (role == 1 && int.TryParse(ssnInternalCheckResult, out contactId))
             {
