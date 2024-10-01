@@ -1,4 +1,5 @@
 ﻿using SubmissionsProcessor.API.Models;
+using SubmissionsProcessor.API.Models.MongoDB;
 using SubmissionsProcessor.API.Services;
 using SubmissionsProcessor.API.Services.MongoDB;
 
@@ -24,6 +25,7 @@ namespace SubmissionsProcessor.API.Repositories
         {
             bool result = false;
             var contactId = 0;
+            try { 
 
             //TODO: Validate SubmissionId AND userId by querying submissions catalogue 
 
@@ -40,14 +42,16 @@ namespace SubmissionsProcessor.API.Repositories
             //update contactId in db if valid AND role=owner
             if (role == 1 && int.TryParse(ssnInternalCheckResult, out contactId))
             {
-                submissionProperty.Properties.FirstOrDefault(x => x.ContainsKey(PROP_OWNER_CONTACT_ID))[PROP_OWNER_CONTACT_ID] = ssnInternalCheckResult;// new Dictionary<string, string> { { PROP_OWNER_CONTACT_ID, ssnInternalCheckResult } };
-                await _service.UpdateAsync(submissionProperty.Id, submissionProperty);
+                UpdateDbWithContactId(submissionProperty, contactId);
+            }
+            }
+            catch (Exception ex) {
+
+                //handle exception
             }
 
-            //handle exception
 
             //return response
-
             var response = new SubmissionResponse
             {
                 result = result.ToString(),
@@ -55,6 +59,13 @@ namespace SubmissionsProcessor.API.Repositories
             };
 
             return response;
+        }
+
+        private async Task UpdateDbWithContactId(SubmissionProperty? submissionProperty, int contactId)
+        {
+            submissionProperty.Properties.FirstOrDefault(x => x.ContainsKey(PROP_OWNER_CONTACT_ID))[PROP_OWNER_CONTACT_ID] = contactId.ToString();
+            await _service.UpdateAsync(submissionProperty.Id, submissionProperty);
+
         }
 
         private async Task<string> GetValidTaxId(string ssn, string submissionId, string propertyValue)
