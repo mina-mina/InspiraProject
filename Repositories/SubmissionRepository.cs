@@ -25,6 +25,8 @@ namespace SubmissionsProcessor.API.Repositories
             bool result = false;
             var contactId = 0;
 
+            //TODO: Validate SubmissionId AND userId by querying submissions catalogue 
+
             var submissionProperty = await _service.GetBySubmissionId(submissionId);
 
             var taxId = await GetValidTaxId(model.SSN, submissionId, submissionProperty.Properties.FirstOrDefault().GetValueOrDefault(PROP_OWNER_TAX_ID));

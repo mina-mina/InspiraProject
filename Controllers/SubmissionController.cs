@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SubmissionsProcessor.API.Models;
 using SubmissionsProcessor.API.Repositories;
@@ -9,6 +10,7 @@ namespace SubmissionsProcessor.API.Controllers
 {
     [ApiController]
     [Route("[controller]")]
+    //[Authorize] TODO: activate once authentication implemented
     public class SubmissionController : ControllerBase
     {
         private readonly ISubmissionRepository _submissionRepository;
