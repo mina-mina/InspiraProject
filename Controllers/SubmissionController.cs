@@ -33,7 +33,7 @@ namespace SubmissionsProcessor.API.Controllers
 
         [HttpPost]
         [Produces(MediaTypeNames.Application.Json)]
-        //[MINA] - bad method naming - maybe Get
+        //[MINA] - bad method naming
         public async Task<IActionResult> Post([FromForm] SubmissionRequest model)
         {
             SubmissionResponse response =null;
@@ -42,7 +42,6 @@ namespace SubmissionsProcessor.API.Controllers
                 //[MINA] - bit sloppy - no validation?
                 //[MINA] security considerations?
                 //[MINA] - sanitization?
-                // Sending
                 response = await _submissionRepository.GetSubmissionResponse(model, _submissionContext.SubmissionId);
             }
             catch (Exception ex)
