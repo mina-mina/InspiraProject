@@ -11,6 +11,8 @@ namespace SubmissionsProcessor.API.Middlewares
         private readonly ILogger<SubmissionMiddleware> _logger;
         private const string _requestSubmissionIdKey = "_submissionIdKey";
         private const string _requestUserIdKey = "_userIdKey";
+        private object? _correlationId;
+
         public SubmissionMiddleware(RequestDelegate next, ILogger<SubmissionMiddleware> logger)
         {
 
@@ -57,17 +59,20 @@ namespace SubmissionsProcessor.API.Middlewares
 
         private void SetSubmissionContext(HttpContext context, object submissionId)
         {
+            //we get correlationId here for logging in case things go wrong in the middleware
+            context.Items.TryGetValue(_requestUserIdKey, out _correlationId);
+
             ISubmissionContext submissionContext = context.RequestServices.GetRequiredService<ISubmissionContext>();
 
             //set submissionObj for later use
             submissionContext.SubmissionId = submissionId?.ToString();
+            submissionContext.CorrelationId = _correlationId?.ToString();
         }
 
         private Task HandleErrorResponse(Exception ex, HttpContext context)
         {
-            //we get correlationId here for logging in case things go wrong in the middleware
-            context.Items.TryGetValue(_requestUserIdKey, out object? correlationId);
-            correlationId = correlationId?.ToString() ?? context.Request?.HttpContext?.TraceIdentifier;
+            var correlationId= _correlationId?.ToString() ?? context.Request?.HttpContext?.TraceIdentifier;
+            var errMsg = $"{typeof(SubmissionMiddleware).Name} Middleware Error. {ex.Message}- CorrelationId: {_correlationId}.";
 
             var statusCode = (int)HttpStatusCode.InternalServerError;
 
@@ -83,6 +88,8 @@ namespace SubmissionsProcessor.API.Middlewares
             {
                 statusCode = (int)HttpStatusCode.Unauthorized;
             }
+            _logger.LogError($"{errMsg} Response statuscode returned:{statusCode}", ex.GetType().Name, ex);
+
             var result = JsonSerializer.Serialize(response);
             context.Response.ContentType = "application/json";
             context.Response.StatusCode = statusCode;
