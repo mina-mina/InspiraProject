@@ -16,6 +16,9 @@ namespace InpiraProject
         {
             var builder = WebApplication.CreateBuilder(args);
 
+            //TODO: configure AddAuthorization and AddAuthentication services
+
+
             // Add services to the container.
             builder.Services.AddMongoDatabase(builder.Configuration);
             //builder.Services.AddScoped<SubmissionsService>();
@@ -29,11 +32,14 @@ namespace InpiraProject
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
 
-            //TODO: configure API Version in swagger
-            //TODO: configure swagger Security
+            //TODO: configure AddApiVersioning service
+            //TODO: if prod has swagger then setup swagger versioning and Security
             builder.Services.AddSwaggerGen();
 
             var app = builder.Build();
+
+            //TODO: configure UseForwardedHeaders 
+            //TODO: add UseSwagger & UseSwaggerUI for prod version setup
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
@@ -47,6 +53,7 @@ namespace InpiraProject
             app.UseHttpsRedirection();
 
             app.UseAuthorization();
+            //TODO: add UseAuthentication
             app.UseWhen(context => context.Request.Path.StartsWithSegments($"/{typeof(SubmissionController).Name}", StringComparison.OrdinalIgnoreCase), appBuilder =>
             {
                 app.UseMiddleware<SumbmissionMiddleware>();
