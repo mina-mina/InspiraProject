@@ -25,29 +25,34 @@ namespace SubmissionsProcessor.API.Repositories
         {
             bool result = false;
             var contactId = 0;
+
             try { 
 
-            //TODO: Validate SubmissionId AND userId by querying submissions catalogue 
+                //TODO: Validate SubmissionId AND userId by querying submissions catalogue 
 
-            var submissionProperty = await _service.GetBySubmissionId(submissionId);
-            var propertyValue = submissionProperty?.Properties?.FirstOrDefault()?.GetValueOrDefault(PROP_OWNER_TAX_ID);
+                var submissionProperty = await _service.GetBySubmissionId(submissionId);
+                var propertyValue = submissionProperty?.Properties?.FirstOrDefault()?.GetValueOrDefault(PROP_OWNER_TAX_ID);
 
-            var taxId = await GetValidTaxId(model.SSN, submissionId, propertyValue);
-            var role = model.Role == "Owner" ? 1 : 0;
+                var taxId = await GetValidTaxId(model.SSN, submissionId, propertyValue);
+                var role = model.Role == "Owner" ? 1 : 0;
 
-            //mocking soap api call here
-            var ssnInternalCheckResult = await _ssnCheckMockService.SSNInternalCheckAsync(taxId, role.ToString());
+                //mocking soap api call here
+                var ssnInternalCheckResult = await _ssnCheckMockService.SSNInternalCheckAsync(taxId, role.ToString());
             
             
-            //update contactId in db if valid AND role=owner
-            if (role == 1 && int.TryParse(ssnInternalCheckResult, out contactId))
-            {
-                UpdateDbWithContactId(submissionProperty, contactId);
-            }
+                //update contactId in db if valid AND role=owner
+                if (role == 1 && int.TryParse(ssnInternalCheckResult, out contactId))
+                {
+                    UpdateDbWithContactId(submissionProperty, contactId);
+                }
             }
             catch (Exception ex) {
 
-                //handle exception
+                _logger.LogError(ex.Message, ex);
+                
+                //throw again
+                throw;
+
             }
 
 
@@ -74,7 +79,7 @@ namespace SubmissionsProcessor.API.Repositories
 
             if (submissionId == null)
             {
-                throw new Exception("submissionId is null.");
+                throw new BadHttpRequestException("submissionId is null.");
             }
 
             var isRedactedTaxId = ssn.Length == 4 || ssn.Contains(".");
@@ -89,7 +94,7 @@ namespace SubmissionsProcessor.API.Repositories
 
             if (taxId == null)
             {
-                throw new Exception($"No valid Tax Id was found for subission id: {submissionId} from SubmissionProperties.");
+                throw new BadHttpRequestException($"No valid Tax Id was found for subission id: {submissionId} from SubmissionProperties.");
             }
 
             return taxId;

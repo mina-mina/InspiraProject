@@ -10,8 +10,10 @@
 -SSNInternalCheck SOAP request/response is to be mocked using internal service
 -No separate serivces to validate response/request handling like it's done in Groovy script
 -A middleware to be used to provide HttpContext validation of the request
+-we assume the same groovy script HTTP response format for all statuscodes
 -Provided Unit and integration tests are to be used to demonstrate this service outputs
 -Test cases are to demonstrate various service usage invoke by the User/client application request
+- for quick delivery, Logging and code Exception handlings are done in simple form and at minimum
 
 
 Before running the tests:
