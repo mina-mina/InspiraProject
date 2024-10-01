@@ -28,6 +28,9 @@ namespace InpiraProject
 
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
+
+            //TODO: configure API Version in swagger
+            //TODO: configure swagger Security
             builder.Services.AddSwaggerGen();
 
             var app = builder.Build();
@@ -36,6 +39,8 @@ namespace InpiraProject
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
+
+                //TODO: configure API version for swaggerUI
                 app.UseSwaggerUI();
             }
 

@@ -8,9 +8,10 @@ using System.Text.Json;
 
 namespace SubmissionsProcessor.API.Controllers
 {
+    //[Authorize] TODO: activate once authentication implemented
+    //TODO: add API version
     [ApiController]
     [Route("[controller]")]
-    //[Authorize] TODO: activate once authentication implemented
     public class SubmissionController : ControllerBase
     {
         private readonly ISubmissionRepository _submissionRepository;
