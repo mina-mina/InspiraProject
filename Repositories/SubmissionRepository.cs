@@ -28,12 +28,14 @@ namespace SubmissionsProcessor.API.Repositories
             //TODO: Validate SubmissionId AND userId by querying submissions catalogue 
 
             var submissionProperty = await _service.GetBySubmissionId(submissionId);
+            var propertyValue = submissionProperty?.Properties?.FirstOrDefault()?.GetValueOrDefault(PROP_OWNER_TAX_ID);
 
-            var taxId = await GetValidTaxId(model.SSN, submissionId, submissionProperty.Properties.FirstOrDefault().GetValueOrDefault(PROP_OWNER_TAX_ID));
+            var taxId = await GetValidTaxId(model.SSN, submissionId, propertyValue);
             var role = model.Role == "Owner" ? 1 : 0;
 
-            //soap api call
+            //mocking soap api call here
             var ssnInternalCheckResult = await _ssnCheckMockService.SSNInternalCheckAsync(taxId, role.ToString());
+            
             
             //update contactId in db if valid AND role=owner
             if (role == 1 && int.TryParse(ssnInternalCheckResult, out contactId))
