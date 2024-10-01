@@ -32,12 +32,12 @@
 			</ul>
 		<li>Setup Mongodb Configs in Tests project appsettings</li>
 		<li>Sample config:</li>
-			<code>
-			"AvokaDatabase": {
-				"ConnectionString": "mongodb://localhost:27017",
-				"DatabaseName": "Avoka"
-			}
-			</code>
+<code>
+"AvokaDatabase": {
+	"ConnectionString": "mongodb://localhost:27017",
+	"DatabaseName": "Avoka"
+}
+</code>
 	<li>Run tests and check tests results</li>
 </ol>
 
