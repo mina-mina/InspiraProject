@@ -16,6 +16,9 @@
 	<li>Logging and Exception handling are done in simple form due to time constraints</li>
 </ul>
 
+## Secuity Considerations
+*
+
 ## Before running the tests:
 
 <ol>	
@@ -28,14 +31,13 @@
 				<li>Form</li>
 			</ul>
 		<li>Setup Mongodb Configs in Tests project appsettings</li>
-		<li>Sample config:
-	```
-	"AvokaDatabase": {
-		"ConnectionString": "mongodb://localhost:27017",
-		"DatabaseName": "Avoka"
-	}
-	```
-	</li>
+		<li>Sample config:</li>
+			```
+			"AvokaDatabase": {
+				"ConnectionString": "mongodb://localhost:27017",
+				"DatabaseName": "Avoka"
+			}
+			```
 	<li>Run tests and check tests results</li>
 </ol>
 
