@@ -1,4 +1,5 @@
 ﻿using SubmissionsProcessor.API.Models;
+using SubmissionsProcessor.API.Models.MongoDB;
 using System.Net;
 using System.Text.Json;
 
@@ -19,33 +20,9 @@ namespace SubmissionsProcessor.API.Middlewares
 
         public async Task Invoke(HttpContext context)
         {
-            //var logger = context.RequestServices.GetRequiredService<ILogger>();
-
             try
             {
-                //we assume the submissionId is being passed in HttpContext Items
-                context.Items.TryGetValue(_requestSubmissionIdKey, out object? submissionId);
-
-                //if request is authenticated using oauth2 then userid should come from HttpContext.User.Identity
-                //below line is to emulate above
-                context.Items.TryGetValue(_requestUserIdKey, out object? userId);
-
-                //we get correlationId here for logging in case things go wrong in the middleware
-                context.Items.TryGetValue(_requestUserIdKey, out object? correlationId);
-                correlationId =correlationId?.ToString() ?? context.Request?.HttpContext?.TraceIdentifier;
-
-                if (submissionId is null)
-                {
-                    throw new KeyNotFoundException("No SubmissionId found the request.");
-                }
-                if (userId is null)
-                {
-                    throw new UnauthorizedAccessException("No UserId found in the request. Unauthorized request.");
-                }
-
-                ISubmissionContext submissionContext = context.RequestServices.GetRequiredService<ISubmissionContext>();
-                SetSubmissionContext(submissionContext, submissionId, correlationId);
-
+                ValidateHttpContextItems(context);
 
                 await _next(context);
             }
@@ -56,15 +33,42 @@ namespace SubmissionsProcessor.API.Middlewares
             }
         }
 
-        private void SetSubmissionContext(ISubmissionContext submissionContext, object submissionId, object? correlationId)
+        private void ValidateHttpContextItems(HttpContext context)
         {
+            //we assume the submissionId is being passed in HttpContext Items
+            context.Items.TryGetValue(_requestSubmissionIdKey, out object? submissionId);
+
+            //if request is authenticated using oauth2 then userid should come from HttpContext.User.Identity
+            //below line is to emulate above
+            context.Items.TryGetValue(_requestUserIdKey, out object? userId);
+
+            if (submissionId is null)
+            {
+                throw new KeyNotFoundException("No SubmissionId found the request.");
+            }
+            if (userId is null)
+            {
+                throw new UnauthorizedAccessException("No UserId found in the request. Unauthorized request.");
+            }
+
+            SetSubmissionContext(context, submissionId);
+
+        }
+
+        private void SetSubmissionContext(HttpContext context, object submissionId)
+        {
+            ISubmissionContext submissionContext = context.RequestServices.GetRequiredService<ISubmissionContext>();
+
             //set submissionObj for later use
-            submissionContext.SubmissionId = submissionId.ToString();
-            submissionContext.CorrelationId = correlationId?.ToString();
+            submissionContext.SubmissionId = submissionId?.ToString();
         }
 
         private Task HandleErrorResponse(Exception ex, HttpContext context)
         {
+            //we get correlationId here for logging in case things go wrong in the middleware
+            context.Items.TryGetValue(_requestUserIdKey, out object? correlationId);
+            correlationId = correlationId?.ToString() ?? context.Request?.HttpContext?.TraceIdentifier;
+
             var statusCode = (int)HttpStatusCode.InternalServerError;
 
             var response = new SubmissionResponse
