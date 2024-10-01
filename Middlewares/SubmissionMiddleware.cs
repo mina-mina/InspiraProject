@@ -5,13 +5,13 @@ using System.Text.Json;
 
 namespace SubmissionsProcessor.API.Middlewares
 {
-    public class SumbmissionMiddleware
+    public class SubmissionMiddleware
     {
         private readonly RequestDelegate _next;
-        private readonly ILogger<SumbmissionMiddleware> _logger;
+        private readonly ILogger<SubmissionMiddleware> _logger;
         private const string _requestSubmissionIdKey = "_submissionIdKey";
         private const string _requestUserIdKey = "_userIdKey";
-        public SumbmissionMiddleware(RequestDelegate next, ILogger<SumbmissionMiddleware> logger)
+        public SubmissionMiddleware(RequestDelegate next, ILogger<SubmissionMiddleware> logger)
         {
 
             _next = next;

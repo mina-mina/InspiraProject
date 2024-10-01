@@ -56,7 +56,7 @@ namespace InpiraProject
             //TODO: add UseAuthentication
             app.UseWhen(context => context.Request.Path.StartsWithSegments($"/{typeof(SubmissionController).Name}", StringComparison.OrdinalIgnoreCase), appBuilder =>
             {
-                app.UseMiddleware<SumbmissionMiddleware>();
+                app.UseMiddleware<SubmissionMiddleware>();
             });
             app.MapControllers();
 
