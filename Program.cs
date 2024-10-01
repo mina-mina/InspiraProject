@@ -17,14 +17,17 @@ namespace InpiraProject
             var builder = WebApplication.CreateBuilder(args);
 
             //TODO: configure AddAuthorization and AddAuthentication services
-
+            //[MINA] no logger injected?
 
             // Add services to the container.
             builder.Services.AddMongoDatabase(builder.Configuration);
             //builder.Services.AddScoped<SubmissionsService>();
             //builder.Services.AddScoped<FormsService>();
             builder.Services.AddScoped<ISubmissionPropertiesService, SubmissionPropertiesService>();
-            builder.Services.AddScoped<ISubmissionContext, SubmissionContext>();
+
+            //[MINA] not understanding how this works - where is the HttpContextAccessor?
+            // something like services.AddHttpContextAccessor();
+            builder.Services.AddScoped<ISubmissionContext, SubmissionContext>(); 
             builder.Services.AddScoped<ISubmissionRepository, SubmissionRepository>();
             builder.Services.AddScoped<ISSNInternalCheckMockService, SSNInternalCheckMockService>();
             builder.Services.AddControllers();

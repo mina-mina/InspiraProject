@@ -82,6 +82,8 @@ namespace SubmissionsProcessor.API.Repositories
                 throw new Exception($"No valid Tax Id was found for subission id: {submissionId} from SubmissionProperties.");
             }
 
+            //[MINA] - how about tax id validation? last 4 not matching to last from property?
+
             return taxId;
         }
     }
